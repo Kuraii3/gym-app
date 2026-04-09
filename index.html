@@ -10,26 +10,52 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-      /* Apply the font and fix the layout */
+      /* Base Layout & Font */
       html, body { 
         height: 100%; 
         margin: 0; 
         font-family: 'Inter', sans-serif;
-        background-color: #000000; /* Ensures background is solid black */
+        background-color: #000000; /* Pure black background for high contrast */
+        color: #f3f4f6; /* Bright off-white for main text */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       } 
       
       #root { height: 100%; }
 
-      /* This forces all text to be brighter if it's currently too dim */
-      body {
-        color: #f3f4f6; /* A very bright, slightly off-white (Gray 100) */
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+      /* GLOBAL CONTRAST BOOSTS */
+      
+      /* 1. Make all buttons 20% lighter than their original color */
+      button {
+        filter: brightness(1.2) !important;
+        transition: transform 0.1s ease;
+      }
+      
+      button:active {
+        transform: scale(0.98); /* Adds a nice "press" feel on mobile */
       }
 
-      /* Help for dim descriptions: If Figma used 'opacity' for dim text, this overrides it */
-      p, span, label {
-        color: inherit;
+      /* 2. Make placeholders (ghost text) much easier to read */
+      ::placeholder {
+        color: #9ca3af !important; /* Lighter Gray (Tailwind Gray-400) */
+        opacity: 1 !important; 
+      }
+
+      /* 3. Ensure input text and textareas are bright white when typing */
+      input, textarea {
+        color: #ffffff !important;
+        background-color: rgba(255, 255, 255, 0.05); /* Slight tint for input boxes */
+      }
+
+      /* 4. Overrides for dim labels/descriptions */
+      p, label, small {
+        color: #d1d5db !important; /* Forces dim secondary text to be Gray-300 */
+      }
+
+      /* 5. Force headers to be pure white */
+      h1, h2, h3, h4 {
+        color: #ffffff !important;
+        font-weight: 700 !important;
       }
     </style>
   </head>
