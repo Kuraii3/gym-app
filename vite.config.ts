@@ -10,7 +10,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
-  base: '/gym-app/', // Added your repository name here
   resolve: {
     alias: {
       // Alias @ to the src directory
