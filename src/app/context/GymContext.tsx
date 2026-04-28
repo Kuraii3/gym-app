@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { Split, WorkoutSession, Exercise, AppSettings } from "../types";
+import { Split, WorkoutSession, Exercise, AppSettings, BodyWeightEntry } from "../types";
 
-const SPLITS_KEY = "gj_splits";
-const SESSIONS_KEY = "gj_sessions";
-const SETTINGS_KEY = "gj_settings";
+const SPLITS_KEY    = "gj_splits";
+const SESSIONS_KEY  = "gj_sessions";
+const SETTINGS_KEY  = "gj_settings";
+const BODYWEIGHT_KEY = "gj_bodyweight";
 
 function generateId() {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -12,6 +13,7 @@ function generateId() {
 const DEFAULT_SETTINGS: AppSettings = {
   restTimerEnabled: true,
   restTimerDuration: 90,
+  barWeight: 20,
 };
 
 function getDefaultSplits(): Split[] {
@@ -57,13 +59,14 @@ export interface GymStats {
   totalSessions: number;
   streak: number;
   favoriteSplit: string | null;
-  totalVolume: number; // kg * reps summed across all sessions
+  totalVolume: number;
 }
 
 interface GymContextType {
   splits: Split[];
   sessions: WorkoutSession[];
   settings: AppSettings;
+  bodyWeights: BodyWeightEntry[];
   addSplit: (name: string) => Split;
   updateSplit: (splitId: string, name: string, exercises: Exercise[]) => void;
   deleteSplit: (splitId: string) => void;
@@ -73,7 +76,14 @@ interface GymContextType {
   getPR: (exerciseName: string) => number | null;
   getStats: () => GymStats;
   updateSettings: (s: Partial<AppSettings>) => void;
-  importData: (data: { splits?: Split[]; sessions?: WorkoutSession[]; settings?: AppSettings }) => void;
+  logBodyWeight: (weight: number, unit: "kg" | "lbs") => void;
+  deleteBodyWeight: (id: string) => void;
+  importData: (data: {
+    splits?: Split[];
+    sessions?: WorkoutSession[];
+    settings?: AppSettings;
+    bodyWeights?: BodyWeightEntry[];
+  }) => void;
 }
 
 const GymContext = createContext<GymContextType | null>(null);
@@ -81,68 +91,76 @@ const GymContext = createContext<GymContextType | null>(null);
 export function GymProvider({ children }: { children: React.ReactNode }) {
   const [splits, setSplits] = useState<Split[]>(() => {
     try {
-      const stored = localStorage.getItem(SPLITS_KEY);
-      if (stored) return JSON.parse(stored);
+      const s = localStorage.getItem(SPLITS_KEY);
+      if (s) return JSON.parse(s);
     } catch {}
     return getDefaultSplits();
   });
 
   const [sessions, setSessions] = useState<WorkoutSession[]>(() => {
     try {
-      const stored = localStorage.getItem(SESSIONS_KEY);
-      if (stored) return JSON.parse(stored);
+      const s = localStorage.getItem(SESSIONS_KEY);
+      if (s) return JSON.parse(s);
     } catch {}
     return [];
   });
 
   const [settings, setSettings] = useState<AppSettings>(() => {
     try {
-      const stored = localStorage.getItem(SETTINGS_KEY);
-      if (stored) return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+      const s = localStorage.getItem(SETTINGS_KEY);
+      if (s) return { ...DEFAULT_SETTINGS, ...JSON.parse(s) };
     } catch {}
     return DEFAULT_SETTINGS;
   });
 
-  useEffect(() => { localStorage.setItem(SPLITS_KEY, JSON.stringify(splits)); }, [splits]);
-  useEffect(() => { localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions)); }, [sessions]);
-  useEffect(() => { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }, [settings]);
+  const [bodyWeights, setBodyWeights] = useState<BodyWeightEntry[]>(() => {
+    try {
+      const s = localStorage.getItem(BODYWEIGHT_KEY);
+      if (s) return JSON.parse(s);
+    } catch {}
+    return [];
+  });
+
+  useEffect(() => { localStorage.setItem(SPLITS_KEY,    JSON.stringify(splits));    }, [splits]);
+  useEffect(() => { localStorage.setItem(SESSIONS_KEY,  JSON.stringify(sessions));  }, [sessions]);
+  useEffect(() => { localStorage.setItem(SETTINGS_KEY,  JSON.stringify(settings));  }, [settings]);
+  useEffect(() => { localStorage.setItem(BODYWEIGHT_KEY, JSON.stringify(bodyWeights)); }, [bodyWeights]);
 
   const addSplit = useCallback((name: string): Split => {
     const newSplit: Split = { id: generateId(), name, exercises: [] };
-    setSplits((prev) => [...prev, newSplit]);
+    setSplits((p) => [...p, newSplit]);
     return newSplit;
   }, []);
 
   const updateSplit = useCallback((splitId: string, name: string, exercises: Exercise[]) => {
-    setSplits((prev) => prev.map((s) => (s.id === splitId ? { ...s, name, exercises } : s)));
+    setSplits((p) => p.map((s) => (s.id === splitId ? { ...s, name, exercises } : s)));
   }, []);
 
   const deleteSplit = useCallback((splitId: string) => {
-    setSplits((prev) => prev.filter((s) => s.id !== splitId));
+    setSplits((p) => p.filter((s) => s.id !== splitId));
   }, []);
 
   const saveSession = useCallback((session: WorkoutSession) => {
-    setSessions((prev) => [session, ...prev]);
+    setSessions((p) => [session, ...p]);
   }, []);
 
   const deleteSession = useCallback((sessionId: string) => {
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+    setSessions((p) => p.filter((s) => s.id !== sessionId));
   }, []);
 
   const getLastSession = useCallback(
-    (splitId: string): WorkoutSession | null => {
-      return sessions.find((s) => s.splitId === splitId) ?? null;
-    },
+    (splitId: string): WorkoutSession | null =>
+      sessions.find((s) => s.splitId === splitId) ?? null,
     [sessions]
   );
 
   const getPR = useCallback(
     (exerciseName: string): number | null => {
       let max: number | null = null;
-      const nameNorm = exerciseName.trim().toLowerCase();
+      const norm = exerciseName.trim().toLowerCase();
       for (const session of sessions) {
         for (const exLog of session.exercises) {
-          if (exLog.exerciseName.trim().toLowerCase() === nameNorm) {
+          if (exLog.exerciseName.trim().toLowerCase() === norm) {
             for (const set of exLog.sets ?? []) {
               const w = parseFloat(set.weight);
               if (!isNaN(w) && (max === null || w > max)) max = w;
@@ -157,58 +175,58 @@ export function GymProvider({ children }: { children: React.ReactNode }) {
 
   const getStats = useCallback((): GymStats => {
     const totalSessions = sessions.length;
-
-    // Streak: consecutive workout days ending today (or yesterday)
-    const workoutDates = new Set(
-      sessions.map((s) => s.date.split("T")[0])
-    );
+    const workoutDates = new Set(sessions.map((s) => s.date.split("T")[0]));
     let streak = 0;
-    const today = new Date();
-    // Check if today has a workout; if not, start from yesterday
-    const todayStr = today.toISOString().split("T")[0];
-    const startFromYesterday = !workoutDates.has(todayStr);
-    const cursor = new Date(today);
-    if (startFromYesterday) cursor.setDate(cursor.getDate() - 1);
+    const cursor = new Date();
+    const todayStr = cursor.toISOString().split("T")[0];
+    if (!workoutDates.has(todayStr)) cursor.setDate(cursor.getDate() - 1);
     while (true) {
       const ds = cursor.toISOString().split("T")[0];
-      if (workoutDates.has(ds)) {
-        streak++;
-        cursor.setDate(cursor.getDate() - 1);
-      } else break;
+      if (workoutDates.has(ds)) { streak++; cursor.setDate(cursor.getDate() - 1); }
+      else break;
     }
-
-    // Favorite split
     const splitCount: Record<string, number> = {};
-    sessions.forEach((s) => {
-      splitCount[s.splitName] = (splitCount[s.splitName] ?? 0) + 1;
-    });
-    const favoriteSplit =
-      Object.entries(splitCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-
-    // Total volume (weight × reps summed)
+    sessions.forEach((s) => { splitCount[s.splitName] = (splitCount[s.splitName] ?? 0) + 1; });
+    const favoriteSplit = Object.entries(splitCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
     let totalVolume = 0;
-    for (const session of sessions) {
-      for (const exLog of session.exercises) {
+    for (const session of sessions)
+      for (const exLog of session.exercises)
         for (const set of exLog.sets ?? []) {
-          const w = parseFloat(set.weight);
-          const r = parseInt(set.reps, 10);
+          const w = parseFloat(set.weight), r = parseInt(set.reps, 10);
           if (!isNaN(w) && !isNaN(r)) totalVolume += w * r;
         }
-      }
-    }
-
     return { totalSessions, streak, favoriteSplit, totalVolume };
   }, [sessions]);
 
   const updateSettings = useCallback((partial: Partial<AppSettings>) => {
-    setSettings((prev) => ({ ...prev, ...partial }));
+    setSettings((p) => ({ ...p, ...partial }));
+  }, []);
+
+  const logBodyWeight = useCallback((weight: number, unit: "kg" | "lbs") => {
+    const entry: BodyWeightEntry = {
+      id: generateId(),
+      date: new Date().toISOString(),
+      weight,
+      unit,
+    };
+    setBodyWeights((p) => [entry, ...p]);
+  }, []);
+
+  const deleteBodyWeight = useCallback((id: string) => {
+    setBodyWeights((p) => p.filter((e) => e.id !== id));
   }, []);
 
   const importData = useCallback(
-    (data: { splits?: Split[]; sessions?: WorkoutSession[]; settings?: AppSettings }) => {
-      if (data.splits) setSplits(data.splits);
-      if (data.sessions) setSessions(data.sessions);
-      if (data.settings) setSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+    (data: {
+      splits?: Split[];
+      sessions?: WorkoutSession[];
+      settings?: AppSettings;
+      bodyWeights?: BodyWeightEntry[];
+    }) => {
+      if (data.splits)       setSplits(data.splits);
+      if (data.sessions)     setSessions(data.sessions);
+      if (data.settings)     setSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+      if (data.bodyWeights)  setBodyWeights(data.bodyWeights);
     },
     []
   );
@@ -216,18 +234,11 @@ export function GymProvider({ children }: { children: React.ReactNode }) {
   return (
     <GymContext.Provider
       value={{
-        splits,
-        sessions,
-        settings,
-        addSplit,
-        updateSplit,
-        deleteSplit,
-        saveSession,
-        deleteSession,
-        getLastSession,
-        getPR,
-        getStats,
-        updateSettings,
+        splits, sessions, settings, bodyWeights,
+        addSplit, updateSplit, deleteSplit,
+        saveSession, deleteSession, getLastSession,
+        getPR, getStats, updateSettings,
+        logBodyWeight, deleteBodyWeight,
         importData,
       }}
     >

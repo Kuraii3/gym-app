@@ -1,67 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Personal Gym Journal App</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-      /* Base Layout & Font */
-      html, body { 
-        height: 100%; 
-        margin: 0; 
-        font-family: 'Inter', sans-serif;
-        background-color: #000000; /* Pure black background for high contrast */
-        color: #f3f4f6; /* Bright off-white for main text */
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      } 
-      
-      #root { height: 100%; }
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Personal Gym Journal App</title>
+      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+    </head>
 
-      /* GLOBAL CONTRAST BOOSTS */
-      
-      /* 1. Make all buttons 20% lighter than their original color */
-      button {
-        filter: brightness(1.2) !important;
-        transition: transform 0.1s ease;
-      }
-      
-      button:active {
-        transform: scale(0.98); /* Adds a nice "press" feel on mobile */
-      }
-
-      /* 2. Make placeholders (ghost text) much easier to read */
-      ::placeholder {
-        color: #9ca3af !important; /* Lighter Gray (Tailwind Gray-400) */
-        opacity: 1 !important; 
-      }
-
-      /* 3. Ensure input text and textareas are bright white when typing */
-      input, textarea {
-        color: #ffffff !important;
-        background-color: rgba(255, 255, 255, 0.05); /* Slight tint for input boxes */
-      }
-
-      /* 4. Overrides for dim labels/descriptions */
-      p, label, small {
-        color: #d1d5db !important; /* Forces dim secondary text to be Gray-300 */
-      }
-
-      /* 5. Force headers to be pure white */
-      h1, h2, h3, h4 {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-      }
-    </style>
-  </head>
-
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+    <body>
+      <div id="root"></div>
+      <script type="module" src="/src/main.tsx"></script>
+    </body>
+  </html>
+  

@@ -6,8 +6,8 @@ import { ActiveWorkout } from "./components/ActiveWorkout";
 
 function NotFound() {
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-      <p className="text-[#444] text-sm font-mono">404 — Page not found</p>
+    <div className="min-h-screen bg-[var(--gj-bg)] flex items-center justify-center">
+      <p className="text-[var(--gj-text-3)] text-sm font-mono">404 — Page not found</p>
     </div>
   );
 }

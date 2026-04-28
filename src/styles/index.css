@@ -2,13 +2,66 @@
 @import './tailwind.css';
 @import './theme.css';
 
-body {
-  background-color: #0A0A0A;
-  color: #ffffff;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ── Gym Journal Design Tokens ── */
+:root {
+  /* Light mode — cool crisp whites with navy accent */
+  --gj-bg:            #ECEEF4;
+  --gj-surface:       #F5F6FA;
+  --gj-raised:        #E2E5EE;
+  --gj-border:        #C2C8D8;
+  --gj-border-sub:    #D6DAE6;
+  --gj-text:          #131620;
+  --gj-text-2:        #3E4558;
+  --gj-text-3:        #6E788C;
+  --gj-text-4:        #A4AABB;
+  --gj-accent:        #1A4A80;       /* deep navy, readable on light */
+  --gj-lime:          #1C5296;       /* navy button */
+  --gj-lime-fg:       #FFFFFF;
+  --gj-lime-hover:    #245EAA;
+  --gj-accent-subtle: rgba(28,82,150,0.08);
+  --gj-accent-border: rgba(28,82,150,0.22);
+  --gj-red:           #B83232;
+  --gj-scrim:         rgba(0,0,0,0.30);
+  --gj-sidebar-w:     260px;
 }
 
-* {
-  box-sizing: border-box;
+html.dark {
+  /* Dark mode — deep blue-black with steel blue accent */
+  --gj-bg:            #0C0E14;       /* deep blue-black */
+  --gj-surface:       #131620;       /* dark navy surface */
+  --gj-raised:        #1A1E2C;       /* elevated cards / inputs */
+  --gj-border:        #262C3E;       /* navy-tinted border */
+  --gj-border-sub:    #1E2230;       /* subtle divider */
+
+  /* Text — cool bright whites */
+  --gj-text:          #EDF0F8;       /* cool off-white primary */
+  --gj-text-2:        #B8C0D4;       /* cool light blue-gray — readable */
+  --gj-text-3:        #7E8AA2;       /* cool medium gray muted */
+  --gj-text-4:        #444C62;       /* dark cool gray, decorative only */
+
+  /* Navy blue accent */
+  --gj-accent:        #7AAFE0;       /* sky blue, readable on dark */
+  --gj-lime:          #2660A8;       /* muted navy button bg */
+  --gj-lime-fg:       #FFFFFF;       /* white text on navy button */
+  --gj-lime-hover:    #2E6EBA;
+
+  --gj-accent-subtle: rgba(122,175,224,0.09);
+  --gj-accent-border: rgba(122,175,224,0.22);
+  --gj-red:           #E07878;
+  --gj-scrim:         rgba(0,0,0,0.65);
 }
+
+body {
+  background-color: var(--gj-bg);
+  color: var(--gj-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+* { box-sizing: border-box; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--gj-bg); }
+::-webkit-scrollbar-thumb { background: var(--gj-border); border-radius: 3px; }

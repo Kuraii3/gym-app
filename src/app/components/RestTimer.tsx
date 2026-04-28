@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { X, SkipForward } from "lucide-react";
 
 interface Props {
-  duration: number; // seconds
+  duration: number;
   onDismiss: () => void;
 }
 
@@ -14,9 +14,7 @@ export function RestTimer({ duration, onDismiss }: Props) {
   const finish = useCallback(() => {
     setDone(true);
     if (navigator.vibrate) navigator.vibrate([150, 80, 150, 80, 250]);
-    setTimeout(() => {
-      onDismiss();
-    }, 2500);
+    setTimeout(onDismiss, 2800);
   }, [onDismiss]);
 
   useEffect(() => {
@@ -24,21 +22,15 @@ export function RestTimer({ duration, onDismiss }: Props) {
     setDone(false);
     intervalRef.current = setInterval(() => {
       setRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current!);
-          return 0;
-        }
+        if (prev <= 1) { clearInterval(intervalRef.current!); return 0; }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(intervalRef.current!);
   }, [duration]);
 
-  // Trigger done state when remaining hits 0
   useEffect(() => {
-    if (remaining === 0 && !done) {
-      finish();
-    }
+    if (remaining === 0 && !done) finish();
   }, [remaining, done, finish]);
 
   const pct = Math.max(0, ((duration - remaining) / duration) * 100);
@@ -50,57 +42,61 @@ export function RestTimer({ duration, onDismiss }: Props) {
     <div
       className={`fixed bottom-[76px] left-4 right-4 z-40 rounded-xl border overflow-hidden transition-all ${
         done
-          ? "border-[#C8FF00]/60 bg-[#C8FF00]/10"
-          : "border-[#2A2A2A] bg-[#141414]"
+          ? "border-[var(--gj-accent-border)] bg-[var(--gj-accent-subtle)]"
+          : "border-[var(--gj-border)] bg-[var(--gj-surface)]"
       }`}
+      style={{ maxWidth: "640px", left: "50%", right: "auto", transform: "translateX(-50%)", width: "calc(100% - 2rem)" }}
     >
-      {/* Progress fill */}
+      {/* Background progress fill */}
       <div
-        className="absolute inset-0 bg-[#C8FF00]/5 transition-all duration-1000"
-        style={{ width: `${pct}%` }}
+        className="absolute inset-0 transition-all duration-1000"
+        style={{
+          width: `${pct}%`,
+          backgroundColor: "var(--gj-accent)",
+          opacity: 0.06,
+        }}
       />
 
       <div className="relative flex items-center gap-3 px-4 py-3">
-        {/* Label */}
         <div className="flex-1">
-          <p className="text-[#444] text-xs font-mono tracking-widest uppercase">
-            {done ? "Rest Over — Go!" : "Rest Timer"}
+          <p className="text-[var(--gj-text-3)] text-xs font-mono tracking-widest uppercase">
+            {done ? "Rest Over — Get back to it!" : "Rest Timer"}
           </p>
           <p
-            className={`text-xl font-mono tabular-nums transition-colors ${
-              done ? "text-[#C8FF00]" : remaining <= 10 ? "text-orange-400" : "text-white"
+            className={`text-xl font-mono tabular-nums ${
+              done
+                ? "text-[var(--gj-accent)]"
+                : remaining <= 10
+                ? "text-orange-400"
+                : "text-[var(--gj-text)]"
             }`}
           >
             {done ? "🎯 Back to work" : label}
           </p>
         </div>
 
-        {/* Skip */}
         {!done && (
           <button
             onClick={onDismiss}
-            className="w-8 h-8 flex items-center justify-center text-[#444] hover:text-[#888] transition-colors"
+            className="w-8 h-8 flex items-center justify-center text-[var(--gj-text-3)] hover:text-[var(--gj-text-2)] transition-colors"
             aria-label="Skip rest"
           >
             <SkipForward size={16} />
           </button>
         )}
 
-        {/* Dismiss */}
         <button
           onClick={onDismiss}
-          className="w-8 h-8 flex items-center justify-center text-[#333] hover:text-[#666] transition-colors"
-          aria-label="Dismiss"
+          className="w-8 h-8 flex items-center justify-center text-[var(--gj-text-4)] hover:text-[var(--gj-text-3)] transition-colors"
         >
           <X size={16} />
         </button>
       </div>
 
-      {/* Bottom progress bar */}
       {!done && (
-        <div className="h-0.5 bg-[#1A1A1A]">
+        <div className="h-0.5 bg-[var(--gj-raised)]">
           <div
-            className="h-full bg-[#C8FF00] transition-all duration-1000"
+            className="h-full bg-[var(--gj-accent)] transition-all duration-1000"
             style={{ width: `${pct}%` }}
           />
         </div>
